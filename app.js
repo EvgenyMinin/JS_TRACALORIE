@@ -1,4 +1,30 @@
 // Storage Controller
+const StorageCtrl = (() => {
+  return {
+    storeItem: (item) => {
+      let items;
+      if (localStorage.getItem("items") === null) {
+        items = [];
+        items.push(item);
+        localStorage.setItem("items", JSON.stringify(items));
+      } else {
+        items = JSON.parse(localStorage.getItem("items"));
+        items.push(item);
+        localStorage.setItem("items", JSON.stringify(items));
+      }
+    },
+    getItemsFromStorage: () => {
+      let items;
+      if (localStorage.getItem("items") === null) {
+        items = [];
+      } else {
+        items = JSON.parse(localStorage.getItem("items"));
+      }
+
+      return items;
+    },
+  };
+})();
 
 // Item Controller
 const ItemCtrl = (() => {
@@ -9,11 +35,7 @@ const ItemCtrl = (() => {
   };
 
   const data = {
-    items: [
-      // { id: 0, name: "Steak Dinner", calories: 1200 },
-      // { id: 1, name: "Cookie", calories: 400 },
-      // { id: 2, name: "Eggs", calories: 300 },
-    ],
+    items: StorageCtrl.getItemsFromStorage(),
     currentItem: null,
     totalCalories: 0,
   };
@@ -225,7 +247,7 @@ const UICtrl = (() => {
 })();
 
 // App Controller
-const App = ((ItemCtrl, UICtrl) => {
+const App = ((ItemCtrl, StorageCtrl, UICtrl) => {
   const handleAddItem = (e) => {
     e.preventDefault();
 
@@ -235,6 +257,7 @@ const App = ((ItemCtrl, UICtrl) => {
       const totalCalories = ItemCtrl.getTotalCalories();
       UICtrl.addListItem(newItem);
       UICtrl.showTotalCalories(totalCalories);
+      StorageCtrl.storeItem(newItem);
       UICtrl.clearInput();
     }
   };
@@ -326,12 +349,12 @@ const App = ((ItemCtrl, UICtrl) => {
     init: () => {
       const items = ItemCtrl.getItems();
       const totalCalories = ItemCtrl.getTotalCalories();
-      items.length === 0 ? UICtrl.hideList() : UICtrl.populateItemList();
+      items.length === 0 ? UICtrl.hideList() : UICtrl.populateItemList(items);
       UICtrl.showTotalCalories(totalCalories);
       UICtrl.clearEditState();
       loadEventListeners();
     },
   };
-})(ItemCtrl, UICtrl);
+})(ItemCtrl, StorageCtrl, UICtrl);
 
 App.init();
