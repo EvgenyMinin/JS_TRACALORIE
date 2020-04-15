@@ -1,4 +1,3 @@
-// Storage Controller
 const StorageCtrl = (() => {
   return {
     storeItem: (item) => {
@@ -13,6 +12,7 @@ const StorageCtrl = (() => {
         localStorage.setItem("items", JSON.stringify(items));
       }
     },
+
     getItemsFromStorage: () => {
       let items;
       if (localStorage.getItem("items") === null) {
@@ -23,10 +23,37 @@ const StorageCtrl = (() => {
 
       return items;
     },
+
+    updateItemStorage: (updatedItem) => {
+      let items = JSON.parse(localStorage.getItem("items"));
+
+      items.forEach((item, index) => {
+        if (updatedItem.id === item.id) {
+          items.splice(index, 1, updatedItem);
+        }
+      });
+
+      localStorage.setItem("items", JSON.stringify(items));
+    },
+
+    deleteItemFromStorage: (id) => {
+      let items = JSON.parse(localStorage.getItem("items"));
+
+      items.forEach((item, index) => {
+        if (id === item.id) {
+          items.splice(index, 1);
+        }
+      });
+
+      localStorage.setItem("items", JSON.stringify(items));
+    },
+
+    clearItemsFromStorage: () => {
+      localStorage.removeItem("items");
+    },
   };
 })();
 
-// Item Controller
 const ItemCtrl = (() => {
   const Item = function (id, name, calories) {
     this.id = id;
@@ -113,7 +140,6 @@ const ItemCtrl = (() => {
   };
 })();
 
-// UI Controller
 const UICtrl = (() => {
   const UISelectors = {
     itemList: "#item-list",
@@ -246,7 +272,6 @@ const UICtrl = (() => {
   };
 })();
 
-// App Controller
 const App = ((ItemCtrl, StorageCtrl, UICtrl) => {
   const handleAddItem = (e) => {
     e.preventDefault();
@@ -281,6 +306,7 @@ const App = ((ItemCtrl, StorageCtrl, UICtrl) => {
     UICtrl.updateListItem(updatedItem);
     const totalCalories = ItemCtrl.getTotalCalories();
     UICtrl.showTotalCalories(totalCalories);
+    StorageCtrl.updateItemStorage(updatedItem);
     UICtrl.clearEditState();
   };
 
@@ -293,6 +319,8 @@ const App = ((ItemCtrl, StorageCtrl, UICtrl) => {
     if (items.length === 0) {
       UICtrl.hideList();
     }
+
+    StorageCtrl.deleteItemFromStorage(currentItem.id);
   };
 
   const handleClearClick = () => {
@@ -303,6 +331,8 @@ const App = ((ItemCtrl, StorageCtrl, UICtrl) => {
 
     UICtrl.removeItems();
     UICtrl.hideList();
+
+    StorageCtrl.clearItemsFromStorage();
   };
 
   const handleBackClick = (e) => {
